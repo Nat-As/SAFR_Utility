@@ -1,5 +1,8 @@
 # SAFR Utility
 
+[![Build and Release](https://github.com/Nat-As/SAFR_Utility/actions/workflows/build.yml/badge.svg)](https://github.com/Nat-As/SAFR_Utility/actions/workflows/build.yml)
+[![Downloads](https://img.shields.io/github/downloads/Nat-As/SAFR_Utility/total?label=downloads)](https://github.com/Nat-As/SAFR_Utility/releases)
+
 Cross-platform serial control and monitoring for the SAFR 247nm laser board — an
 Electron port of the PyQt5 `247nm_Laser_GUI.py` / `SAFRPy.py` / `extendedSerial.py`
 toolchain, using the [Web Serial API](https://developer.mozilla.org/docs/Web/API/Web_Serial_API)
@@ -7,25 +10,104 @@ instead of pyserial.
 
 No Python, no PyQt5, no native modules — one self-contained executable per platform.
 
-## Features
+## Usage
 
-**Control**
-- Serial port picker with OS-level port scan (`COM4`, `/dev/ttyUSB0`, …) at 115200 8N1
-- Firmware version query (`v?`)
-- Laser current readback and setpoint (`lC`)
-- Pr:BYF TEC setpoint (`tS0` + `tT`) and BBO TEC setpoint (`tS1` + `tT`)
-- Laser output on/off (`lO1` / `lO0`) with power and firmware-timeout status flags
-- Laser timeout override applied on connect (`lT1`)
-- TEC diagnostic stream toggle (`ta5` / `ta0`) — required for live TEC voltage
-- Free-form command entry for anything not on the panel
+### Connecting
 
-**Monitoring**
-- Live readouts: Pr:BYF, BBO and diode temperatures, TEC voltage, laser current
-- Dual-Y-axis strip chart — temperatures left, TEC voltage right — with a rolling
-  time window from 1 second to 23:59:59
-- Adjustable poll interval (50–2000 ms)
-- CSV recording to a file you choose, with per-sample timestamps
-- Serial monitor showing every transmitted and received line
+1. Pick the board's port from **COM Port**. The list is scanned from the OS at
+   startup — hit **Refresh** if you plug the board in afterwards. On Windows it
+   shows `COM4`-style names, on Linux `/dev/ttyUSB0` with the USB adapter's
+   description beside it.
+2. Press **Connect**. The app opens the port at 115200 8N1, asks for the firmware
+   version, and overrides the firmware's laser-on timeout (`lT1`) so the output
+   does not shut itself off mid-session.
+3. The badge in the top-right turns green and the status line at the bottom
+   reports the poll rate. If the board does not answer within 1.5 seconds the
+   status line warns you — usually the wrong port.
+
+**Connect** becomes **Disconnect** while the link is up. Closing the window
+disconnects cleanly and closes any open recording.
+
+### Reading telemetry
+
+Once connected, the app polls the board continuously and fills the read-only
+fields. **Update Interval** (bottom of the plot panel) sets how often, from 50 ms
+to 2 s; 250 ms is a good default and slower rates are gentler on a busy board.
+
+| Field | Source |
+| --- | --- |
+| Laser Current | measured output current, amps |
+| Pr:BYF Setpoint / BBO Setpoint | the two TEC loop targets the board is holding |
+| Pr:BYF Temperature | spectrometer-side thermistor |
+| BBO Temperature | laser-side thermistor |
+| Diode Temperature | pump diode thermistor |
+| TEC Voltage | TEC drive voltage — **only** with diagnostics on, see below |
+
+**TEC Voltage stays blank until you tick "Stream TEC voltage."** No query returns
+it; the board only reports TEC voltage in the raw telemetry stream that
+diagnostic mode (`ta5`) turns on. Tick the box to see it, untick to stop the
+stream.
+
+### Setting temperatures and current
+
+The **Set setpoint** and **Set current** rows are the writable ones — the row
+above each shows what the board currently reports.
+
+Type a value and press **Enter** (or click away). The field clears and the status
+line echoes the command that went out, so you can confirm it landed:
+
+- **Pr:BYF Setpoint** → selects the spectrometer TEC, then sets the target
+- **BBO Setpoint** → selects the laser TEC, then sets the target
+- **Set current** → sets the laser drive current in amps, e.g. `1.25`
+
+Values are sent in hundredths, so `45.00` °C goes out as `tT4500`. Read the
+setpoint row back to confirm the board accepted it — it should follow within a
+poll or two. Non-numeric input is ignored rather than sent.
+
+### Firing the laser
+
+> ⚠️ **On** energises the laser output. Confirm the interlocks, beam path and eye
+> protection for your setup before using it.
+
+**On** and **Off** drive the output (`lO1` / `lO0`). Two indicators track state:
+
+- **Power** — lit while the board reports the output as on
+- **Timeout** — lit while the firmware's auto-shutoff timer is armed
+
+Both are read back from the board, not set locally, so they show what the
+hardware actually thinks. They are indicators only; use the buttons to change
+state.
+
+### Plotting and recording
+
+The chart shows the three temperatures against the left axis and TEC voltage
+against the right, colour-matched to the legend. Current values sit beside each
+legend entry.
+
+**Max Length** sets the rolling window (hours / minutes / seconds, 1 second to
+23:59:59). The trace fills left to right, then scrolls once full. **Reset**
+clears the buffers and restarts the time base.
+
+**Record** writes every sample to CSV. You choose the file; it defaults to a
+`YYYYMMDD-HHMMSS.csv` timestamp. Columns are:
+
+```
+Time(s),PrBYFTemp(C),BBOTemp(C),DiodeTemp(C),TECVoltage(V)
+```
+
+**Recording stops on its own once it fills the Max Length window** — so a 15
+second window records 15 seconds. Set Max Length to the run duration you want
+before starting. **Stop** ends it early.
+
+### Sending raw commands
+
+**Manual Command** sends any string the board understands, verbatim, with `\r\n`
+appended — handy for commands the panel does not cover (motor, CCD, LED, fan,
+PID tuning). Press Enter or click **Send**.
+
+The **Serial Monitor** logs both directions, `>` transmitted and `<` received, so
+you can see exactly what the board replied. **Pause** freezes the log without
+touching the link; **Clear** empties it. Text is selectable for copying.
 
 ## Install
 
@@ -33,16 +115,16 @@ Grab a build from [Releases](../../releases):
 
 | Platform | File |
 | --- | --- |
-| Windows (installer) | `SAFR Utility-Setup-<version>.exe` |
-| Windows (portable) | `SAFR Utility-<version>-portable.exe` |
-| Linux (AppImage) | `SAFR Utility-<version>-x86_64.AppImage` |
+| Windows (installer) | `SAFR-Utility-Setup-<version>.exe` |
+| Windows (portable) | `SAFR-Utility-<version>-portable.exe` |
+| Linux (AppImage) | `SAFR-Utility-<version>-x86_64.AppImage` |
 | Linux (Debian/Ubuntu) | `safr-utility_<version>_amd64.deb` |
 
 The AppImage needs to be marked executable before it will run:
 
 ```bash
-chmod +x 'SAFR Utility-'*.AppImage
-./'SAFR Utility-'*.AppImage
+chmod +x SAFR-Utility-*.AppImage
+./SAFR-Utility-*.AppImage
 ```
 
 ### Linux serial permissions
@@ -119,35 +201,7 @@ The poll loop issues `c?`, `t?`, `a?` and `l?` each tick:
 | `c?` | CCD integration time and pixel ROI |
 
 TEC voltage is not exposed by any query — the board only reports it in the bare
-8-field CSV stream produced by TEC diagnostic mode. Tick **Stream TEC voltage
-(ta5)** to turn that stream on.
-
-### Differences from the Python GUI
-
-Behaviour was kept identical except where the original was plainly broken or
-unfinished:
-
-- **TEC voltage now reaches its field.** `updateTECVoltageLineEdit` wrote to
-  `voltageLabel` instead of `voltageLineEdit`, so the value overwrote the row's
-  caption and the field stayed blank.
-- **Port list is not probed by opening every port.** The Python startup loop
-  opened each port and looked for a `v?`/`E0` reply — but always against a
-  hardcoded `COM4`, so on any other machine it listed ports that were never
-  tested. Ports are now listed from the OS and verified after connecting: if the
-  board does not answer `v?` within 1.5 s, the status line says so.
-- **Buttons that were never connected now work.** `Query` (firmware) and `Reset`
-  (clear plot buffers) had no signal connections.
-- **The update-interval slider now does something.** It was created but never
-  wired; it sets the poll interval, replacing the fixed 100 ms plot timer and
-  250 ms query timer with a single tick so no sample is plotted twice.
-- **CSV header matches the columns.** The header named four columns while five
-  were written; it is now `Time(s),PrBYFTemp(C),BBOTemp(C),DiodeTemp(C),TECVoltage(V)`.
-- **Recordings go where you choose.** A save dialog replaces an auto-named file
-  dropped in the working directory. As before, a run stops on its own once it
-  fills the Max Length window.
-- **TEC diagnostic mode is a checkbox** rather than a commented-out line.
-- **A serial monitor was added.** `SAFRPy` emitted `updateTX`/`updateRX` but the
-  GUI never displayed them.
+8-field CSV stream produced by TEC diagnostic mode.
 
 `SAFRPy.py` sets `self.diodeTemp = self.externTemp2` while the GUI routes
 `externTemp2` to the Pr:BYF field and `externTemp1` to the Diode field. The GUI's
