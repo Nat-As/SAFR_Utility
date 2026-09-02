@@ -1,14 +1,15 @@
 # SAFR Utility
 
 [![Build and Release](https://github.com/Nat-As/SAFR_Utility/actions/workflows/build.yml/badge.svg)](https://github.com/Nat-As/SAFR_Utility/actions/workflows/build.yml)
-[![Downloads](https://img.shields.io/github/downloads/Nat-As/SAFR_Utility/total?label=downloads)](https://github.com/Nat-As/SAFR_Utility/releases)
+![Downloads](https://img.shields.io/github/downloads/Nat-As/SAFR_Utility/total)
 
 Cross-platform serial control and monitoring for the SAFR 247nm laser board — an
 Electron port of the PyQt5 `247nm_Laser_GUI.py` / `SAFRPy.py` / `extendedSerial.py`
 toolchain, using the [Web Serial API](https://developer.mozilla.org/docs/Web/API/Web_Serial_API)
 instead of pyserial.
 
-No Python, no PyQt5, no native modules — one self-contained executable per platform.
+## Download
+Download is available for Linux / Windows [HERE](https://github.com/Nat-As/SAFR_Utility/releases)
 
 ## Usage
 
