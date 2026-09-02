@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:" />
+  <title>SAFR Utility</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ------------------------------------------------------ control column -->
+    <section class="panel controls">
+      <header class="panel-head">
+        <h1>247nm Laser Control</h1>
+        <span id="connectionBadge" class="badge badge-off">Disconnected</span>
+      </header>
+
+      <div class="grid">
+        <label for="portSelect">COM Port</label>
+        <div class="cell wide">
+          <select id="portSelect" class="field"></select>
+          <button id="refreshPortsButton" class="btn btn-ghost" title="Rescan serial ports">Refresh</button>
+          <button id="connectButton" class="btn btn-primary">Connect</button>
+        </div>
+
+        <label for="firmwareField">Firmware</label>
+        <div class="cell wide">
+          <input id="firmwareField" class="field" type="text" readonly />
+          <button id="queryFirmwareButton" class="btn btn-ghost" disabled>Query</button>
+        </div>
+
+        <label for="currentField">Laser Current</label>
+        <input id="currentField" class="field" type="text" readonly />
+        <span class="units">A</span>
+
+        <label class="sub" for="currentSetField">Set current</label>
+        <input id="currentSetField" class="field" type="text" inputmode="decimal"
+               placeholder="e.g. 1.25" disabled />
+        <span class="units">A</span>
+
+        <label for="byfSetpointField">Pr:BYF Setpoint</label>
+        <input id="byfSetpointField" class="field" type="text" readonly />
+        <span class="units">&deg;C</span>
+
+        <label class="sub" for="byfSetpointSetField">Set setpoint</label>
+        <input id="byfSetpointSetField" class="field" type="text" inputmode="decimal"
+               placeholder="e.g. 32.50" disabled />
+        <span class="units">&deg;C</span>
+
+        <label for="bboSetpointField">BBO Setpoint</label>
+        <input id="bboSetpointField" class="field" type="text" readonly />
+        <span class="units">&deg;C</span>
+
+        <label class="sub" for="bboSetpointSetField">Set setpoint</label>
+        <input id="bboSetpointSetField" class="field" type="text" inputmode="decimal"
+               placeholder="e.g. 45.00" disabled />
+        <span class="units">&deg;C</span>
+
+        <div class="divider"></div>
+
+        <label for="byfTempField">Pr:BYF Temperature</label>
+        <input id="byfTempField" class="field readout" type="text" readonly />
+        <span class="units">&deg;C</span>
+
+        <label for="bboTempField">BBO Temperature</label>
+        <input id="bboTempField" class="field readout" type="text" readonly />
+        <span class="units">&deg;C</span>
+
+        <label for="diodeTempField">Diode Temperature</label>
+        <input id="diodeTempField" class="field readout" type="text" readonly />
+        <span class="units">&deg;C</span>
+
+        <label for="tecVoltageField">TEC Voltage</label>
+        <input id="tecVoltageField" class="field readout" type="text" readonly />
+        <span class="units">V</span>
+
+        <div class="divider"></div>
+
+        <label>Laser State</label>
+        <div class="cell wide between">
+          <div class="state-flags">
+            <label class="flag"><input id="laserPowerFlag" type="checkbox" disabled /> Power</label>
+            <label class="flag"><input id="laserTimeoutFlag" type="checkbox" disabled /> Timeout</label>
+          </div>
+          <div class="row-actions">
+            <button id="laserOnButton" class="btn btn-danger" disabled>On</button>
+            <button id="laserOffButton" class="btn btn-ghost" disabled>Off</button>
+          </div>
+        </div>
+
+        <label>TEC Diagnostics</label>
+        <div class="cell wide">
+          <label class="flag" title="Puts the board in TEC diagnostic mode (ta5), the only source of TEC voltage">
+            <input id="tecDiagnosticFlag" type="checkbox" disabled /> Stream TEC voltage
+          </label>
+        </div>
+
+        <label for="manualCommandField">Manual Command</label>
+        <div class="cell wide">
+          <input id="manualCommandField" class="field mono" type="text" placeholder="v?" disabled />
+          <button id="manualSendButton" class="btn btn-ghost" disabled>Send</button>
+        </div>
+      </div>
+
+      <p id="statusLine" class="status">Select a port and connect.</p>
+    </section>
+
+    <!-- --------------------------------------------------------- plot column -->
+    <section class="panel plot-panel">
+      <header class="panel-head">
+        <h2>Telemetry</h2>
+        <div id="legend" class="legend"></div>
+      </header>
+
+      <div class="canvas-wrap">
+        <canvas id="plotCanvas"></canvas>
+      </div>
+
+      <div class="plot-controls">
+        <div class="control-group">
+          <span class="control-label">Max Length</span>
+          <label class="stepper"><input id="hoursField" type="number" min="0" max="23" value="0" /><span>h</span></label>
+          <label class="stepper"><input id="minutesField" type="number" min="0" max="59" value="0" /><span>m</span></label>
+          <label class="stepper"><input id="secondsField" type="number" min="1" max="59" value="15" /><span>s</span></label>
+        </div>
+
+        <div class="control-group grow">
+          <span class="control-label">Update Interval</span>
+          <input id="rateSlider" type="range" min="50" max="2000" step="50" value="250" />
+          <output id="rateReadout" class="readout-inline">250 ms</output>
+        </div>
+
+        <div class="control-group">
+          <button id="recordButton" class="btn btn-record" disabled>Record</button>
+          <button id="resetButton" class="btn btn-ghost">Reset</button>
+        </div>
+      </div>
+
+      <div class="monitor">
+        <header class="monitor-head">
+          <h3>Serial Monitor</h3>
+          <div class="monitor-actions">
+            <label class="flag"><input id="monitorPauseFlag" type="checkbox" /> Pause</label>
+            <button id="monitorClearButton" class="btn btn-ghost btn-sm">Clear</button>
+          </div>
+        </header>
+        <div id="monitorLog" class="monitor-log mono" role="log" aria-live="off"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="transport.js"></script>
+  <script src="safr.js"></script>
+  <script src="plot.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

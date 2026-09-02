@@ -1,0 +1,67 @@
+{
+  "name": "safr-utility",
+  "productName": "SAFR Utility",
+  "version": "1.0.0",
+  "description": "Serial control and monitoring utility for the SAFR 247nm laser board",
+  "main": "src/main.js",
+  "author": "Alakai Defense Systems",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nat-As/SAFR_Utility.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --linux"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.alakaidefense.safrutility",
+    "productName": "SAFR Utility",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.${ext}"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Utility",
+      "synopsis": "SAFR 247nm laser serial control utility",
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ]
+    },
+    "appImage": {
+      "artifactName": "${productName}-${version}-x86_64.${ext}"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/*.ico
+build/*.icns
+*.log
+*.csv
+.DS_Store
+Thumbs.db
