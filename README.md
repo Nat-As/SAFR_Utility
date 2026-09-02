@@ -1,7 +1,7 @@
 # SAFR Utility
 
 [![Build and Release](https://github.com/Nat-As/SAFR_Utility/actions/workflows/build.yml/badge.svg)](https://github.com/Nat-As/SAFR_Utility/actions/workflows/build.yml)
-![Downloads](https://img.shields.io/github/downloads/Nat-As/SAFR_Utility/total)
+[![Downloads](https://img.shields.io/github/downloads/Nat-As/SAFR_Utility/total?label=downloads)](https://github.com/Nat-As/SAFR_Utility/releases)
 
 Cross-platform serial control and monitoring for the SAFR laser board — in
 Electron!
