@@ -24,36 +24,18 @@ Download is available for Linux / Windows [HERE](https://github.com/Nat-As/SAFR_
    reports the poll rate. If the board does not answer within 1.5 seconds the
    status line warns you — usually the wrong port.
 
-**Connect** becomes **Disconnect** while the link is up. Closing the window
-disconnects cleanly and closes any open recording.
-
-Values are sent in hundredths, so `45.00` °C goes out as `tT4500`. Read the
-setpoint row back to confirm the board accepted it — it should follow within a
-poll or two. Non-numeric input is ignored rather than sent.
-
 ### Firing the laser
 
-> ⚠️ **On** energises the laser output. Confirm the interlocks, beam path and eye
+>[!CAUTION]
+> **On** energises the laser output. Confirm the interlocks, beam path and eye
 > protection for your setup before using it.
 
-**On** and **Off** drive the output (`lO1` / `lO0`). Two indicators track state:
-
-- **Power** — lit while the board reports the output as on
-- **Timeout** — lit while the firmware's auto-shutoff timer is armed
-
-Both are read back from the board, not set locally, so they show what the
-hardware actually thinks. They are indicators only; use the buttons to change
-state.
 
 ### Sending raw commands
 
 **Manual Command** sends any string the board understands, verbatim, with `\r\n`
 appended — handy for commands the panel does not cover (motor, CCD, LED, fan,
 PID tuning). Press Enter or click **Send**.
-
-The **Serial Monitor** logs both directions, `>` transmitted and `<` received, so
-you can see exactly what the board replied. **Pause** freezes the log without
-touching the link; **Clear** empties it. Text is selectable for copying.
 
 ## Install
 
