@@ -100,15 +100,3 @@ all four artifacts attached:
 npm version 1.0.1        # bumps package.json and commits a v1.0.1 tag
 git push --follow-tags
 ```
-
-## Architecture
-
-| File | Replaces | Purpose |
-| --- | --- | --- |
-| `src/main.js` | — | Electron main process, Web Serial permissions, CSV file writer |
-| `src/ports.js` | `serial.tools.list_ports` | Gesture-free serial port enumeration per OS |
-| `src/preload.js` | — | `contextBridge` surface exposed to the renderer |
-| `src/renderer/transport.js` | `extendedSerial.py` | Web Serial line transport and transmit queue |
-| `src/renderer/safr.js` | `SAFRPy.py` | Board protocol: command builders and reply parsing |
-| `src/renderer/plot.js` | `TwoYAxisPlot` (pyqtgraph) | Dual-Y-axis canvas strip chart |
-| `src/renderer/app.js` | `247nm_Laser_GUI.py` | UI wiring, polling loop, rolling buffers, recording |
